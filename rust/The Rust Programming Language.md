@@ -2796,4 +2796,8 @@ to run all tests whether they’re ignored or not: `cargo test -- --include-ingo
 
 ## 11.3 Test Organization
 
-The purpose of unit tests is to test each unit of code in isolation from the rest of the code to quickly pinpoint where code is and isn’t working as expected.
+The Rust community thinks about tests in terms of two main categories: unit tests and integration tests
+
+### Unit Tests
+
+The purpose of unit tests is to test each unit of code in isolation from the rest of the code to quickly pinpoint where code is and isn’t working as expected

@@ -2801,3 +2801,67 @@ The Rust community thinks about tests in terms of two main categories: unit test
 ### Unit Tests
 
 The purpose of unit tests is to test each unit of code in isolation from the rest of the code to quickly pinpoint where code is and isn’t working as expected
+
+```rust
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+}
+```
+
+1. `cfg` stands for *configuration*
+2. `test` is provided by Rust for compiling and running tests
+3. Rust do allow you to test private functions
+
+ ```rust
+ pub fn add_two(a: i32) -> i32 {
+     internal_adder(a, 2)
+ }
+ 
+ fn internal_adder(a: i32, b: i32) -> i32 {
+     a + b
+ }
+ 
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+ 
+     #[test]
+     fn internal() {
+         assert_eq!(4, internal_adder(2, 2));
+     }
+ }
+ ```
+
+### Integration Tests
+
+In Rust, integration tests are entirely external to your library, purpose is to test whether many parts of your library work together correctly
+
+### The *tests* Directory
+
+```
+adder
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   └── lib.rs
+└── tests
+    └── integration_test.rs
+```
+
+```rust
+use adder;
+
+#[test]
+fn it_adds_two() {
+    assert_eq!(4, adder::add_two(2));
+}
+```
+
+to run a particular integration test function by using `cargo test --test the_name_of_the_file`
+
+### Submodules in Integration Tests

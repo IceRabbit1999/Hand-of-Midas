@@ -185,6 +185,7 @@ Type: english
 96. circumstance: 情况
 97. coerce: 胁迫
 98. coherence: 连贯性
+99. compel: 迫使
 
 # D
 
@@ -251,6 +252,7 @@ Type: english
 61. deliberately: 故意的
 62. dire：可怕的
 63. deterministic: 确定性的
+64. debate: 辩论
 
 # E
 
@@ -454,6 +456,7 @@ Type: english
 80. idiom: 成语，惯用语法
 81. intense: 激烈的
 82. inevitable: 不可避免地
+83. ideology: 思想
 
 # J
 

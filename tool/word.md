@@ -345,6 +345,7 @@ Type: english
 13. flawless：完美无瑕
 14. facilities: 设施
 15. folks: 伙计
+16. flaws: 缺陷
 
 # G
 
@@ -371,6 +372,7 @@ Type: english
 9. havoc：浩劫，毁灭
 10. hazards: 危害
 11. hypotheses：假设
+12. hyphens: 连字符号
 
 # I
 

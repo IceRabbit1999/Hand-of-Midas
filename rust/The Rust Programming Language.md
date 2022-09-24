@@ -13,7 +13,6 @@ Type: rust
     1. resolution
     
     [How do I debug `cargo build` hanging at "Updating crates.io index"?](https://stackoverflow.com/questions/53361052/how-do-i-debug-cargo-build-hanging-at-updating-crates-io-index)
-    
 
 # Foreward
 
@@ -2865,3 +2864,88 @@ fn it_adds_two() {
 to run a particular integration test function by using `cargo test --test the_name_of_the_file`
 
 ### Submodules in Integration Tests
+
+### Integration Tests for Binary Crates
+
+Only library crates expose functions that other crates can use; binary crates are meant to be run on their own.
+
+
+
+# 12. An I/O Project: Building a Command Line Program
+
+## 12.1 Accepting Command Line Arguments
+
+### Reading the Argument Values
+
+```rust
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    dbg!(args);
+}
+```
+
+### Saving the Argument Values in Variable
+
+```rust
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    //dbg!(args);
+
+    let query = &args[1];
+    let file_path = &args[2];
+
+    println!("Searching for {}", query);
+    println!("In file {}",file_path);
+
+}
+```
+
+## 12.2 Reading a File
+
+```rust
+use std::env;
+use std::fs;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    //dbg!(args);
+
+    let query = &args[1];
+    let file_path = &args[2];
+
+    println!("Searching for {}", query);
+    println!("In file {}",file_path);
+
+    let contents = fs::read_to_string(file_path).expect("Should haven been able to read the file");
+    println!("With text:\n{contents}");
+    
+}
+```
+
+### 12.3 Refactoring to Improve Modularity and Error Handling
+
+### Separation of Concerns for Binary Projects
+
+steps from Rust community to split the separate concerns of a binary program when `main` starts getting large
+
+1. **Split your program into a *main.rs* and a *lib.rs* and move your program's logic to *lib.rs***
+2. As long as your command line parsing logic is small, it can remain in *main.rs*
+3. When the command line parsing logic starts getting complicated, extract it from *main.rs* and move it to *lib.rs*
+
+responsibilities that remain in the `main` function should be limited to the following:
+
+1. Calling the command line parsing logic with the argument values
+2. Setting up any other configuration
+3. Calling a `run` function in *lib.rs*
+4. Handing the error if `run` returns an error
+
+In summary
+
+`main.rs` handles running the program, and *lib.rs* handles all the logic of the task at hand
+
+### Extracting the Argument Parser
+

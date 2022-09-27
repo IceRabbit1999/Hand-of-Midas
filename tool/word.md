@@ -1,11 +1,4 @@
-# words
-
-Created: May 31, 2022 8:10 AM
-Last Edited Time: September 16, 2022 4:42 PM
-Status: In Review 👀
-Type: english
-
-# *Word*
+# Word
 
 # A
 
@@ -186,6 +179,8 @@ Type: english
 97. coerce: 胁迫
 98. coherence: 连贯性
 99. compel: 迫使
+100. convey: 传达
+101. consolidate
 
 # D
 
@@ -459,6 +454,8 @@ Type: english
 81. intense: 激烈的
 82. inevitable: 不可避免地
 83. ideology: 思想
+84. indicator: 指标
+85. idiomatic: 习惯语
 
 # J
 

@@ -2926,7 +2926,7 @@ fn main() {
 }
 ```
 
-### 12.3 Refactoring to Improve Modularity and Error Handling
+## 12.3 Refactoring to Improve Modularity and Error Handling
 
 ### Separation of Concerns for Binary Projects
 
@@ -2948,4 +2948,364 @@ In summary
 `main.rs` handles running the program, and *lib.rs* handles all the logic of the task at hand
 
 ### Extracting the Argument Parser
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let (query, file_path) = parse_config(&args);
+
+    // --snip--
+}
+
+fn parse_config(args: &[String]) -> (&str, &str) {
+    let query = &args[1];
+    let file_path = &args[2];
+
+    (query, file_path)
+}
+```
+
+### Grouping Configuration Values
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = parse_config(&args);
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    let contents = fs::read_to_string(config.file_path)
+        .expect("Should have been able to read the file");
+
+    // --snip--
+}
+
+struct Config {
+    query: String,
+    file_path: String,
+}
+
+fn parse_config(args: &[String]) -> Config {
+    let query = args[1].clone();
+    let file_path = args[2].clone();
+
+    Config { query, file_path }
+}
+```
+
+### Creating a Constructor for Config
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::new(&args);
+
+    // --snip--
+}
+
+// --snip--
+
+impl Config {
+    fn new(args: &[String]) -> Config {
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        Config { query, file_path }
+    }
+}
+```
+
+### Fixing the Error Handling
+
+```rust
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    //dbg!(args);
+
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    let contents = fs::read_to_string(config.file_path).expect("Should haven been able to read the file");
+    println!("With text:\n{contents}");
+}
+
+struct Config {
+    query: String,
+    file_path: String,
+}
+
+impl Config {
+    fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+        Ok(Config { query, file_path })
+    }
+}
+```
+
+### Extracting Logic from main
+
+```rust
+fn main() {
+    // --snip--
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    run(config);
+}
+
+fn run(config: Config) {
+    let contents = fs::read_to_string(config.file_path)
+        .expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
+}
+
+// --snip--
+```
+
+### Returning Errors from the run Function
+
+```rust
+use std::error::Error;
+
+// --snip--
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.file_path)?;
+
+    println!("With text:\n{contents}");
+
+    Ok(())
+}
+```
+
+### Handling Errors Returned from run in main
+
+```rust
+if let Err(e) = run(config) {
+    println!("Application Error: {}", e);
+    process::exit(1);
+}
+```
+
+### Splitting Code into a Library Crate
+
+```rust
+use std::error::Error;
+use std::fs;
+
+pub struct Config {
+    pub query: String,
+    pub file_path: String,
+}
+
+impl Config {
+    pub fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+        Ok(Config { query, file_path })
+    }
+}
+
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>>{
+    let content = fs::read_to_string(config.file_path)?;
+    println!("With text:\n{content}");
+    Ok(())
+}
+```
+
+## 12.4 Developing the Library's Functionality with Test-Driven Development
+
+I don't like TDD
+
+### Writing a Failing Test
+
+```rust
+pub fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
+    vec![]
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let content = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+        assert_eq!(vec!["safe, fast, productive."], search(query, content))
+    }
+}
+```
+
+### Writing Code to Pass the Test
+
+```rust
+pub fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
+    let mut result = Vec::new();
+
+    for line in content.lines() {
+        if line.contains(query) {
+            result.push(line)
+        }
+    }
+    result
+}
+```
+
+
+
+## 12.5 Working with Environment Variables
+
+### Writing a Failing Test for the Case-Insensitive search Function
+
+```rust
+use std::error::Error;
+use std::{env, fs};
+
+pub struct Config {
+    pub query: String,
+    pub file_path: String,
+    pub ignore_case: bool,
+}
+
+impl Config {
+    pub fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
+        Ok(Config { query, file_path, ignore_case })
+    }
+}
+
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let content = fs::read_to_string(config.file_path)?;
+
+    let result = if config.ignore_case {
+        search_case_insensitive(&config.query, &content)
+    } else {
+        search(&config.query, &content)
+    };
+
+
+    for line in result {
+        println!("{line}")
+    }
+
+    Ok(())
+}
+
+pub fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
+    let mut result = Vec::new();
+
+    for line in content.lines() {
+        if line.contains(query) {
+            result.push(line)
+        }
+    }
+    result
+}
+
+pub fn search_case_insensitive<'a>(
+    query: &str,
+    content: &'a str,
+) -> Vec<&'a str>{
+    let query = query.to_lowercase();
+    let mut result = Vec::new();
+
+    for line in content.lines() {
+        if line.to_lowercase().contains(&query) {
+            result.push(line);
+        }
+    }
+
+    result
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn case_sensitive() {
+        let query = "duct";
+        let content = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+        assert_eq!(vec!["safe, fast, productive."], search(query, content))
+    }
+
+    #[test]
+    fn case_insensitive() {
+        let query = "duct";
+        let content = "\
+Rust:
+safe, fast, productive.
+Pick three.
+Duct tape.";
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, content)
+        );
+    }
+}
+```
+
+## 12.6 Writing Error Messages to Standard Error Instead of Standard Output
+
+### Checking Where Errors Are Written
+
+`cargo run > output.txt`
+
+### Printing Errors to Standard Error
+
+`println!` –> `eprintln!`
+
+
+
+# 13. Functional Language Features: Iterators and Closures
+
+Programming in a functional style often includes:
+
+- using functions as values by passing them in arguments
+- returning them from other functions
+- assigning them to variables for later execution
+
+## 13.1 Closures: Anonymous Functions that Capture Their Environment
+
+Rust's closures are anonymous functions you can save in a variable or pass as arguments to other functions
+
+Closures can capture values from the scope in which they're defined
+
+### Capturing the Environment with Closures
 

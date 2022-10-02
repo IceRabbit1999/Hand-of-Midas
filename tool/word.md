@@ -180,7 +180,7 @@
 98. coherence: 连贯性
 99. compel: 迫使
 100. convey: 传达
-101. consolidate
+101. consolidate: 巩固
 
 # D
 
@@ -635,6 +635,7 @@
 77. profound: 深刻的
 78. propensity: 倾向
 79. pinpoint: 查明
+80. promotion: 晋升
 
 # Q
 
@@ -682,6 +683,7 @@
 37. recap: 回顾
 38. rectify: 纠正
 39. resistance： 反抗
+40. rigidly: 死板的
 
 # S
 

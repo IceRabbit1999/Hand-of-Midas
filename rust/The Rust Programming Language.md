@@ -3309,3 +3309,154 @@ Closures can capture values from the scope in which they're defined
 
 ### Capturing the Environment with Closures
 
+```rust
+fn main() {
+    let store = Inventory {
+        shirt: vec![ShirtColor::Blue, ShirtColor::Red, ShirtColor::Blue],
+    };
+
+    let user_pref1 = Some(ShirtColor::Red);
+    let giveaway1 = store.giveaway(user_pref1);
+    println!(
+        "The user with preference {:?} gets {:?}",
+        user_pref1, giveaway1
+    );
+
+
+    let user_pref2 = None;
+    let giveaway2 = store.giveaway(user_pref2);
+    println!(
+        "The user with preference {:?} gets {:?}",
+        user_pref2, giveaway2
+    );
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+enum ShirtColor {
+    Red,
+    Blue,
+}
+
+struct Inventory {
+    shirt: Vec<ShirtColor>,
+}
+
+impl Inventory {
+    fn giveaway(&self, user_preference: Option<ShirtColor>) -> ShirtColor {
+        user_preference.unwrap_or_else(|| self.most_stocked())
+    }
+
+    fn most_stocked(&self) -> ShirtColor {
+        let mut num_red = 0;
+        let mut num_blue = 0;
+
+        for color in &self.shirt {
+            match color {
+                ShirtColor::Red => num_red += 1,
+                ShirtColor::Blue => num_blue += 1,
+            }
+        }
+        if num_red > num_blue {
+            ShirtColor::Red
+        } else {
+            ShirtColor::Blue
+        }
+    }
+}
+```
+
+### Closure Type Inference and Annotation
+
+for closure definitions, the compiler will infer one concrete type of their parameters and for their return value
+
+```rust
+ let expensive_closure = |num: u32| -> u32 {
+        println!("calculating slowly...");
+        thread::sleep(Duration::from_secs(2));
+        num
+};
+```
+
+closure syntax vs function syntax:
+
++ the use of pipes
++ the amount of syntax that is optional
+
+```rust
+fn  add_one_v1   (x: u32) -> u32 { x + 1 }  // a function definition
+let add_one_v2 = |x: u32| -> u32 { x + 1 }; // a fully anontated closure definition
+let add_one_v3 = |x|             { x + 1 }; // remove the type annotated of the closure body
+let add_one_v4 = |x|               x + 1  ; // remove the brackets
+```
+
+### Capturing References or Moving Ownership
+
+closures can capture values from their environment in three ways:
+
+1. borrowing immutably
+
+   ```rust
+   fn main() {
+       let list = vec![1, 2, 3];
+       println!("Before defining closure: {:?}", list);
+   
+       let only_borrows = || println!("From closure: {:?}", list);
+   
+       println!("Before calling closure: {:?}", list);
+       only_borrows();
+       println!("After calling closure: {:?}", list);
+   }
+   /*
+   Before defining closure: [1, 2, 3]
+   Before calling closure: [1, 2, 3]
+   From closure: [1, 2, 3]
+   After calling closure: [1, 2, 3]
+   */
+   ```
+
+   
+
+2. borrowing mutably
+
+   ```rust
+   fn main() {
+       let mut list = vec![1, 2, 3];
+       println!("Before defining closure: {:?}", list); // [1, 2, 3]
+   
+       let mut borrows_mutably = || list.push(7);
+   
+       borrows_mutably();
+       println!("After calling closure: {:?}", list); // [1, 2, 3, 7]
+   }
+   ```
+
+   
+
+3. taking ownership
+
+use `move` keyword to take ownership of the values it uses in the environment	
+
+### Moving Captured Values Out of Closures and the Fn Traits
+
+a closure body can do:
+
+1. move a captured value out of the closure 
+2. mutate the captured value
+3. neither move nor mutate the value
+4. capture nothing from the environment 
+
+closures will automatically implement these `Fn` traits in an additive fashion
+
+1. `FnOnce`
+   1. applies to closures that can be called at least once
+   2. all closures implement at least this trait
+   3. a closure that moves captured values out of its body will only implement `FnOnce` 
+2. `FnMut`
+   1. applies to closures that don't move captured values out of their body but might mutate the values
+   2. can be called more than once
+3. `Fn`
+   1. applies to closures that don't move captured values out of their body and don't mutate captured values
+   2. as well as  closures that capture nothing from their environment
+
+## 13.2 Processing a Series of Items with Iterators
+

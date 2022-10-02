@@ -1,8 +1,6 @@
 # Rust Question List
 
-Created: August 13, 2022 4:59 PM
-Last Edited Time: August 31, 2022 7:24 PM
-Type: rust
+
 
 1. `let my_string = String::from("hello world");` vs `let my_string_literal = "hello world";` ?
 2. Note that the entire instance must be mutable; Rust doesn’t allow us to mark only certain fields as mutable
@@ -12,7 +10,7 @@ Type: rust
 
 [The Rust Programming Language](https://doc.rust-lang.org/book/print.html#using-trait-bounds-to-conditionally-implement-methods)
 
-1. string slices and strings ?
+5. string slices and strings ?
 
 ```rust
 fn main() {
@@ -35,3 +33,5 @@ fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
 ```
 
 why this is compiled in java
+
+6. println!("{}", var) var为什么是inmutable

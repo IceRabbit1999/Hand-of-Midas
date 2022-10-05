@@ -3460,3 +3460,295 @@ closures will automatically implement these `Fn` traits in an additive fashion
 
 ## 13.2 Processing a Series of Items with Iterators
 
+In Rust, iterators are *lazy*
+
+### The Iterator Trait and the next Method
+
+```rust
+pub trait Iterator {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+
+    // methods with default implementations elided
+}
+```
+
+`iter`: produce an immutable iterator over immutable references
+
+`into_iter`: create an iterator takes ownership and returns owned values
+
+`iter_mut`: iterator over mutable references
+
+### Methods that Consume the Iterator
+
+methods that call `next` are called *consuming adaptors*
+
+```rust
+ #[test]
+    fn iterator_sum() {
+        let v1 = vec![1, 2, 3];
+
+        let v1_iter = v1.iter();
+
+        let total: i32 = v1_iter.sum();
+
+        assert_eq!(total, 6);
+    }
+```
+
+### Methods that Produce Other Iterators
+
+*iterator adaptors* are methods defined on the `Iterator` trait that don't consume the iterator, instead, they produce different iterators by changing some aspect of the original iterator
+
+```rust
+let v1: Vec<i32> = vec![1, 2, 3];
+
+let v2: Vec<_> = v1.iter().map(|x| x + 1).collect();
+
+assert_eq!(v2, vec![2, 3, 4]);
+```
+
+### Using Closures that Capture Their Environment
+
+```rust
+fn shoes_in_size(shoes: Vec<Shoe>, shoe_size: u32) -> Vec<Shoe> {
+    shoes.into_iter().filter(|s| s.size == shoe_size).collect()
+}
+```
+
+## 13.3 Improving Our I/O Project
+
+### Removing a clone Using an Iterator
+
+```rust
+impl Config {
+    pub fn build(
+        mut args: impl Iterator<Item = String>,
+    ) -> Result<Config, &'static str> {
+        args.next();
+
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+        };
+
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
+        Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+        })
+    }
+}
+```
+
+### Making Code Clearer with Iterator Adaptors
+
+The functional programming style prefers to minimize the amount of mutable state to make code clearer
+
+```rust
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
+}
+```
+
+### Choosing Between Loops or Iterators
+
+Most Rust programmers prefer to use the iterator style
+
+## 13.4 Comparing Performance: Loops vs. Iterators
+
+1. Iterators, although a high-level abstraction, get compiled down to roughly the same code as if you'd written the lower-level code yourself
+2. Iterators are one of Rust's *zero-cost* abstractions(no additional runtime overhead)
+
+
+
+# 14. More About Cargo and Creates.io
+
+## 14.1 Customizing Builds with Release Profiles
+
+in `Cargo.toml`
+
+```toml
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+```
+
+## 14.2 Publishing a Crate to Crates.io
+
+### Making Useful Documentation Comments
+
+```rust
+/// Adds one to the number given.
+///
+/// # Examples
+///
+/// ```
+/// let arg = 5;
+/// let answer = my_crate::add_one(arg);
+///
+/// assert_eq!(6, answer);
+/// ```
+pub fn add_one(x: i32) -> i32 {
+    x + 1
+}
+```
+
+use `cargo doc` to generate the HTML documentation in *target/doc* directory
+
+`cargo doc --open` for current crate's documentation
+
+### Commonly Used Sections
+
+Example Panics Errors Safety
+
+### Documentation Comments as Tests
+
+run `cargo test` will run the code examples in your doc, so doc and your code should keep sync
+
+### Commenting Contained Items
+
+ ```rust
+ //! # My Crate
+ //!
+ //! `my_crate` is a collection of utilities to make performing certain
+ //! calculations more convenient.
+ 
+ /// Adds one to the number given.
+ // --snip--
+ ///
+ /// # Examples
+ ///
+ /// ```
+ /// let arg = 5;
+ /// let answer = my_crate::add_one(arg);
+ ///
+ /// assert_eq!(6, answer);
+ /// ```
+ pub fn add_one(x: i32) -> i32 {
+     x + 1
+ }
+ ```
+
+doc comments within items (`//!`) are useful for describing crates and modules especially
+
+### Exporting a Convenient Public API with pub use
+
+```rust
+//! # Art
+//!
+//! A library for modeling artistic concepts.
+
+pub use self::kinds::PrimaryColor;
+pub use self::kinds::SecondaryColor;
+pub use self::utils::mix;
+
+pub mod kinds {
+    // --snip--
+}
+
+pub mod utils {
+    // --snip--
+}
+```
+
+when other people use you library
+
+```rust
+use art::mix;
+use art::PrimaryColor;
+
+fn main() {
+    // --snip--
+    let red = PrimaryColor::Red;
+    let yellow = PrimaryColor::Yellow;
+    mix(red, yellow);
+}
+```
+
+creating a useful public API structure is more of an art than a science
+
+### Setting Up a Crates.io Account
+
+### Adding Metadata to a New Crate
+
+`cargo.toml`
+
+```toml
+[package]
+name = "guessing_game"
+version = "0.1.0"
+edition = "2021"
+description = "A fun game where you guess what number the computer has chosen."
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+```
+
+### Publishing to Crates.io
+
+`cargo publish`
+
+### Publishing a New Version of an Existing Crate
+
+use the [Semantic Versioning rules](http://semver.org/) to decide what an appropriate next version number is based on the kinds of changes you’ve made
+
+### Deprecating Versions from Crates.io with cargo yank
+
+Essentially, a yank means that all projects with a *Cargo.lock* will not break, and any future *Cargo.lock* files generated will not use the yanked version
+
+`cargo yank --vers 1.0.1`
+
+## 14.3 Cargo Workspaces
+
+### Creating a Workspace
+
+a *workspace* is a set of packages that share the same *Cargo.lock* and output directory
+
+```toml
+[workspace]
+
+members = [
+    "adder",
+]
+```
+
+`cargot run -p package_name` to specify which package in the workspace we want to run
+
+### Depending on an External Package in a Workspace
+
+Making all crates in the workspace use the same dependencies means the crates will always be compatible with each other
+
+### Adding a Test to a Workspace
+
+Running `cargo test` in a workspace will run the tests for all the crates in the workspace
+
+`cargo test -p crate_name` to test one particular crate
+
+## 14.4 Installing Binaries with cargo install
+
+ `cargo install` command allows you to install and use binary crates locally
+
+the default directory is *$HOME/.cargo/bin*
+
+## 14.5 Extending Cargo with Custom Commands
+
+If a binary in your `$PATH` is named `cargo-something`, you can run it as if it was a Cargo subcommand by running `cargo something`
+
+
+
+# 15. Smart Pointers
+

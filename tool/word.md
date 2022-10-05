@@ -636,6 +636,7 @@
 78. propensity: 倾向
 79. pinpoint: 查明
 80. promotion: 晋升
+81. prioritize: 优先考虑
 
 # Q
 

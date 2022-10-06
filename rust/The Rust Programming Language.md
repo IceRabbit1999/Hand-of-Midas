@@ -3752,3 +3752,11 @@ If a binary in your `$PATH` is named `cargo-something`, you can run it as if it 
 
 # 15. Smart Pointers
 
+The most common kind of pointer in Rust is a reference: indicated by the `&` symbol and borrow the value they point to
+
+*Smart pointers* are data structures that act like a pointer but also have additional metadata and capabilities
+
+**while references only borrow data, in many cases, smart pointers *own* the data they point to**
+
+## 15.1 Using Box\<T> to Point to Data on the Heap
+

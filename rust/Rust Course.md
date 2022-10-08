@@ -157,3 +157,128 @@ impl SomeTrait for AlwaysEqual {
 ```
 
 抽象类actually
+
+### 2.4.5 数组
+
+在 Rust 中，最常用的数组有两种，第一种是速度很快但是**长度固定**的 `array`，第二种是可动态增长的但是有性能损耗的 `Vector`
+
+- `[u8; 3]` 和 `[u8; 4]` 是不同的类型，数组的长度也是类型的一部分
+- **在实际开发中，使用最多的是数组切片 [T]**，我们往往通过引用的方式去使用 `&[T]`，因为后者有固定的类型大小
+
+## 2.5 流程控制
+
+| 使用方法                      | 等价使用方式                                      | 所有权     |
+| ----------------------------- | ------------------------------------------------- | ---------- |
+| `for item in collection`      | `for item in IntoIterator::into_iter(collection)` | 转移所有权 |
+| `for item in &collection`     | `for item in collection.iter()`                   | 不可变借用 |
+| `for item in &mut collection` | `for item in collection.iter_mut()`               | 可变借用   |
+
+```rust
+// 不想单独声明一个变量来控制这个流程
+for _ in 0..10 {
+  // ...
+}
+```
+
+- **break 可以单独使用，也可以带一个返回值**，有些类似 `return`
+- **loop 是一个表达式**，因此可以返回一个值
+
+## 2.6 模式匹配
+
+### 2.6.1 match和if let
+
+- `match` 的匹配必须要穷举出所有可能，因此这里用 `_` 来代表未列出的所有可能性
+- `match` 的每一个分支都必须是一个表达式，且所有分支的表达式最终返回值的类型必须相同
+- **X | Y**，类似逻辑运算符 `或`，代表该分支可以匹配 `X` 也可以匹配 `Y`，只要满足一个即可
+
+**当你只要匹配一个条件，且忽略其他条件时就用 `if let` ，否则都用 `match`**
+
+#### 变量覆盖：
+
+```rust
+fn main() {
+   let age = Some(30);
+   println!("在匹配前，age是{:?}",age);
+   if let Some(age) = age {
+       println!("匹配出来的age是{}",age);
+   }
+
+   println!("在匹配后，age是{:?}",age);
+}
+```
+
+### 2.6.4 全模式列表
+
+### @绑定
+
+当你既想要限定分支范围，又想要使用分支的变量时，就可以用 `@` 来绑定到一个新的变量上，实现想要的功能。
+
+```rust
+
+enum Message {
+    Hello { id: i32 },
+}
+
+let msg = Message::Hello { id: 5 };
+
+match msg {
+    Message::Hello { id: id_variable @ 3..=7 } => {
+        println!("Found an id in range: {}", id_variable)
+    },
+}
+```
+
+## 2.7 方法
+
+### self, &self, &mut self
+
+1. `&self` 其实是 `self: &Self` 的简写
+2. `Self` 指代被实现方法的结构体类型，`self` 指代此类型的实例
+3. `self` 依然有所有权的概念
+
+### 方法名跟结构体字段名相同
+
+一般来说，方法跟字段同名，往往适用于实现 `getter` 访问器
+
+### 关联函数
+
+定义在 `impl` 中且没有 `self` 的函数（不是方法，不能通过`.`调用）
+
+### 为枚举实现方法
+
+`impl`同样适用于枚举
+
+## 2.8 泛型和特征
+
+### 2.8.1 泛型
+
+#### 为具体的泛型类型实现方法
+
+```rust
+impl Point<f32> {
+    fn distance_from_origin(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+}
+```
+
+#### const 泛型
+
+```rust
+fn display_array<T: std::fmt::Debug, const N: usize>(arr: [T; N]) {
+    println!("{:?}", arr);
+}
+fn main() {
+    let arr: [i32; 3] = [1, 2, 3];
+    display_array(arr);
+
+    let arr: [i32; 2] = [1, 2];
+    display_array(arr);
+}
+```
+
+`N` 就是 const 泛型，定义的语法是 `const N: usize`，表示 const 泛型 `N` ，它基于的值类型是 `usize`
+
+#### 泛型的性能
+
+Rust 通过在编译时进行泛型代码的 **单态化** ( *monomorphization*) 来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程

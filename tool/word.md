@@ -180,7 +180,7 @@
 98. coherence: 连贯性
 99. compel: 迫使
 100. convey: 传达
-101. consolidate: 巩固
+101. consolidate: 核心内容
 
 # D
 
@@ -368,6 +368,7 @@
 10. hazards: 危害
 11. hypotheses：假设
 12. hyphens: 连字符号
+13. in conjunction
 
 # I
 
@@ -553,6 +554,7 @@
 20. overlap: 重叠
 21. orphan: 孤儿
 22. overlaps：重叠
+23. penalty: 惩罚
 
 # P
 
@@ -637,6 +639,7 @@
 79. pinpoint: 查明
 80. promotion: 晋升
 81. prioritize: 优先考虑
+82. pseudocode: 伪代码
 
 # Q
 

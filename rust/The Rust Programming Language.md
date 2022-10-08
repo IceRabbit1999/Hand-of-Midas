@@ -3760,3 +3760,220 @@ The most common kind of pointer in Rust is a reference: indicated by the `&` sym
 
 ## 15.1 Using Box\<T> to Point to Data on the Heap
 
+Boxes allow you to store data on the heap rather than the stack
+
+### Using a Box\<T> to Store Data on the Heap
+
+```rust
+fn main() {
+    let b = Box::new(5);
+    println!("b = {}", b);
+}
+```
+
+### Enabling Recursive Types with Boxes
+
+
+
+![box](./src/image-20221007144817219.png)
+
+```rust
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+fn main() {
+    let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+}
+```
+
+
+
+## 15.2 Treating Smart Pointers Like Regular Reference with the Deref Trait
+
+### Following the Pointer to the Value
+
+```rust
+fn main() {
+    let x = 5;
+    let y = &x;
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+}
+```
+
+### Using Box\<T> Like a Reference
+
+```rust
+fn main() {
+    let x = 5;
+    let y = Box::new(x);
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+}
+```
+
+### Defining Our Own Smart Pointer
+
+```rust
+use std::ops::Deref;
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
+
+fn main() {
+    let x = 5;
+    let y = MyBox::new(x);
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+}
+```
+
+when we run `*y` , behind the scenes Rust actually ran `*(y.deref())`
+
+If the `deref` method returned the value directly instead of a reference to the value, the value would be moved out of `self`
+
+### Implicit Deref Coercions with Functions and Methods
+
+```rust
+fn hello(name: &str) {
+    println!("Hello, {name}!");
+}
+
+fn main() {
+    let m = MyBox::new(String::from("Rust"));
+    // calling deref: &Mybox<String> --> &String
+    // calling deref: &String --> &str
+    hello(&m);
+}
+```
+
+If Rust didn’t implement deref coercion
+
+```rust
+fn main() {
+    let m = MyBox::new(String::from("Rust"));
+    hello(&(*m)[..]);
+}
+```
+
+The number of times that `Deref::deref` needs to be inserted is resolved at compile time
+
+### How Deref Coercion Interacts with Mutablity
+
+Rust does deref coercion when it finds types and trait implementations in three cases:
+
+- From `&T` to `&U` when `T: Deref<Target=U>`
+- From `&mut T` to `&mut U` when `T: DerefMut<Target=U>`
+- From `&mut T` to `&U` when `T: Deref<Target=U>`
+
+immutable references will never coerce to mutable references
+
+## 15.3 Running Code on Cleanup with the Drop Trait
+
+Variables are dropped in the reverse order of their creation
+
+```rust
+struct CustomSmartPointer {
+    data: String,
+}
+
+impl Drop for CustomSmartPointer {
+    fn drop(&mut self) {
+        println!("Dropping CustomSmartPointer with data `{}`!", self.data);
+    }
+}
+
+fn main() {
+    let c = CustomSmartPointer {
+        data: String::from("my stuff"),
+    };
+    let d = CustomSmartPointer {
+        data: String::from("other stuff"),
+    };
+    println!("CustomSmartPointers created.");
+}
+```
+
+
+
+### Dropping a Value Early with std::mem::drop
+
+
+
+```rust
+fn main() {
+    let c = CustomSmartPointer {
+        data: String::from("some data"),
+    };
+    println!("CustomSmartPointer created.");
+    drop(c);
+    println!("CustomSmartPointer dropped before the end of main.");
+}
+```
+
+## 15.4 Rc\<T>, the Reference Counted Smart Pointer
+
+1. We use the Rc\<T> type when we want to allocate some data on the heap for multiple parts of our program to read and we can't determine at compile time which part will finish using the data last
+2. `Rc<T>` is only for use in single-threaded scenarios
+
+### Using Rc\<T> to Share Data
+
+```rust
+enum List {
+    Cons(i32, Rc<List>),
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+use std::rc::Rc;
+
+fn main() {
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));
+    // Rc::clone is not deep-copy, only increments the reference count  
+    let b = Cons(3, Rc::clone(&a));
+    let c = Cons(4, Rc::clone(&a));
+}
+```
+
+### Cloning an Rc\<T> Increases the Reference Count
+
+```rust
+fn main() {
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));
+    println!("count after creating a = {}", Rc::strong_count(&a));
+    let b = Cons(3, Rc::clone(&a));
+    println!("count after creating b = {}", Rc::strong_count(&a));
+    {
+        let c = Cons(4, Rc::clone(&a));
+        println!("count after creating c = {}", Rc::strong_count(&a));
+    }
+    println!("count after c goes out of scope = {}", Rc::strong_count(&a));
+}
+```
+
+## 15.5 RefCell\<T> and the Interior Mutability Pattern
+
+*Interior mutability* is a design pattern in Rust that allows you to mutate data even when there are immutable references to that data
+
+### Enforcing Borrowing Rules at Runtime with RefCell\<T>
+

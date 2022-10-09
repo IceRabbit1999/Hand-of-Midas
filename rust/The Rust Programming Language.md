@@ -2534,7 +2534,7 @@ fn longest<'a>(x: &str, y: &str) -> &'a str {
 
 Ultimately
 
-1. **lifetime syntax is ablut connecting the lifetimes of the various parameters and return values of functions**
+1. **lifetime syntax is abut connecting the lifetimes of the various parameters and return values of functions**
 2. **so Rust has enough information to allow memory-safe operations and disallow operations that would create dangling pointers …**
 
 ### Lifetime Annotations in Struct Definitions
@@ -2592,7 +2592,7 @@ impl<'a> ImportantExcerpt<'a> {
 
 ### The Static Lifetime
 
-`‘static` denotes that affected reference can live for the entire duration of the program
+`'static` denotes that affected reference can live for the entire duration of the program
 
 ```rust
 // All string literals have the 'static lifetime (The text of this string is stored directly in the program’s binary)

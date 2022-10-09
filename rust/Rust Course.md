@@ -282,3 +282,235 @@ fn main() {
 #### 泛型的性能
 
 Rust 通过在编译时进行泛型代码的 **单态化** ( *monomorphization*) 来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程
+
+### 2.8.2 特征
+
+#### 特征约束
+
+```rust
+pub fn notify<T: Summary>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+pub fn notify<T: Summary>(item1: &T, item2: &T) {}
+//多重约束
+pub fn notify<T: Summary + Display>(item: &T) {}
+//where约束
+fn some_function<T, U>(t: &T, u: &U) -> i32
+    where T: Display + Clone,
+          U: Clone + Debug
+{}
+```
+
+### 2.8.3 特征对象
+
+特征约束限制了只能有一个满足条件的类型，如果需要同时使用实现了特征的N个对象，需要用到特征对象
+
+`dyn trait_name`
+
+- **特征对象大小不固定**
+- **几乎总是使用特征对象的引用方式**
+
+![特征对象的动态分发](./src/特征对象的动态分发.png)
+
+#### 特征对象的限制
+
+不是所有特征都能拥有特征对象，只有对象安全的特征才行。当一个特征的所有方法都有如下属性时，它的对象才是安全的：
+
+- 方法的返回类型不能是 `Self`
+- 方法没有任何泛型参数
+
+### 2.8.4 进一步深入特征
+
+#### 调用同名方法
+
+```rust
+trait Pilot {
+    fn fly(&self);
+}
+
+trait Wizard {
+    fn fly(&self);
+}
+
+struct Human;
+
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("This is your captain speaking.");
+    }
+}
+
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("Up!");
+    }
+}
+
+impl Human {
+    fn fly(&self) {
+        println!("*waving arms furiously*");
+    }
+}
+//当方法的参数是self
+fn main() {
+    let person = Human;
+    Pilot::fly(&person); // 调用Pilot特征上的方法
+    Wizard::fly(&person); // 调用Wizard特征上的方法
+    person.fly(); // 调用Human类型自身的方法
+}
+```
+
+当方法没有self参数，需要使用完全限定语法
+`<Type as Trait>::function(receiver_if_method, next_arg, ...);`
+
+```rust
+trait Animal {
+    fn baby_name() -> String;
+}
+
+struct Dog;
+
+impl Dog {
+    fn baby_name() -> String {
+        String::from("Spot")
+    }
+}
+
+impl Animal for Dog {
+    fn baby_name() -> String {
+        String::from("puppy")
+    }
+}
+
+fn main() {
+    println!("A baby dog is called a {}", <Dog as Animal>::baby_name());
+}
+```
+
+只有当存在多个同名函数或方法，且 Rust 无法区分出你想调用的目标函数时，该用法才能真正有用武之地
+
+## 2.10 类型转换
+
+```rust
+let array: Rc<Box<[T; 3]>> = ...;
+let first_entry = array[0];
+```
+
+1. 首先， `array[0]` 只是 [`Index`](https://doc.rust-lang.org/std/ops/trait.Index.html)特征的语法糖：编译器会将 `array[0]` 转换为 `array.index(0)` 调用，当然在调用之前，编译器会先检查 `array` 是否实现了 `Index` 特征。
+2. 接着，编译器检查 `Rc<Box<[T; 3]>>` 是否有实现 `Index` 特征，结果是否，不仅如此，`&Rc<Box<[T; 3]>>` 与 `&mut Rc<Box<[T; 3]>>` 也没有实现。
+3. 上面的都不能工作，编译器开始对 `Rc<Box<[T; 3]>>` 进行解引用，把它转变成 `Box<[T; 3]>`
+4. 此时继续对 `Box<[T; 3]>` 进行上面的操作 ：`Box<[T; 3]>`， `&Box<[T; 3]>`，和 `&mut Box<[T; 3]>` 都没有实现 `Index` 特征，所以编译器开始对 `Box<[T; 3]>` 进行解引用，然后我们得到了 `[T; 3]`
+5. `[T; 3]` 以及它的各种引用都没有实现 `Index` 索引 (是不是很反直觉：D，在直觉中，数组都可以通过索引访问，实际上只有数组切片才可以！)，它也不能再进行解引用，因此编译器只能祭出最后的大杀器：将定长转为不定长，因此 `[T; 3]` 被转换成 `[T]`，也就是数组切片，它实现了 `Index` 特征，因此最终我们可以通过 `index` 方法访问到对应的元素。
+
+通用表达
+
+1. 首先，编译器检查它是否可以直接调用 `T::foo(value)`，称之为**值方法调用**
+2. 如果上一步调用无法完成 (例如方法类型错误或者特征没有针对 `Self` 进行实现，上文提到过特征不能进行强制转换)，那么编译器会尝试增加自动引用，例如会尝试以下调用： `<&T>::foo(value)` 和 `<&mut T>::foo(value)`，称之为**引用方法调用**
+3. 若上面两个方法依然不工作，编译器会试着解引用 `T` ，然后再进行尝试。这里使用了 `Deref` 特征 —— 若 `T: Deref<Target = U>` (`T` 可以被解引用为 `U`)，那么编译器会使用 `U` 类型进行尝试，称之为**解引用方法调用**
+4. 若 `T` 不能被解引用，且 `T` 是一个定长类型 (在编译器类型长度是已知的)，那么编译器也会尝试将 `T` 从定长类型转为不定长类型，例如将 `[i32; 2]` 转为 `[i32]`
+5. 若还是不行，那... 没有那了，最后编译器大喊一声：汝欺我甚，不干了！
+
+## 2.12 包和模块
+
+典型的Package结构
+
+```rust
+.
+├── Cargo.toml
+├── Cargo.lock
+├── src
+│   ├── main.rs
+│   ├── lib.rs
+│   └── bin
+│       └── main1.rs
+│       └── main2.rs
+├── tests
+│   └── some_integration_tests.rs
+├── benches
+│   └── simple_bench.rs
+└── examples
+    └── simple_example.rs
+
+```
+
+- 唯一库包：`src/lib.rs`
+- 默认二进制包：`src/main.rs`，编译后生成的可执行文件与 `Package` 同名
+- 其余二进制包：`src/bin/main1.rs` 和 `src/bin/main2.rs`，它们会分别生成一个文件同名的二进制可执行文件
+- 集成测试文件：`tests` 目录下
+- 基准性能测试 `benchmark` 文件：`benches` 目录下
+- 项目示例：`examples` 目录下
+
+### 2.12.3 使用use引入模块及受限可见性
+
+#### 限制性语法
+
+- `pub` 意味着可见性无任何限制
+- `pub(crate)` 表示在当前包可见
+- `pub(self)` 在当前模块可见
+- `pub(super)` 在父模块可见
+- `pub(in <path>)` 表示在某个路径代表的模块中可见，其中 `path` 必须是父模块或者祖先模块
+
+## 2.13 文档注释
+
+- 文档注释需要位于 `lib` 类型的包中，例如 `src/lib.rs` 中
+- 文档注释可以使用 `markdown` 语法！例如 `# Examples` 的标题，以及代码块高亮
+- 被注释的对象需要使用 `pub` 对外可见，记住：文档注释是给用户看的，**内部实现细节不应该被暴露出去**
+
+文档行注释：`///`
+
+文档块注释：`/**...*/`
+
+包/模块行注释：`//!`
+
+包/模块块注释：`/*! ... */`
+
+
+
+# 3. Rust高级进阶
+
+## 3.1 生命周期
+
+### 3.1.1 认识生命周期
+
+**生命周期标注并不会改变任何引用的实际作用域**
+
+#### 函数签名中的生命周期标注
+
+```rust
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+```
+
+该函数签名表明对于某些生命周期 `'a`，函数的两个参数都至少跟 `'a` 活得一样久
+
+**在通过函数签名指定生命周期参数时，我们并没有改变传入引用或者返回引用的真实生命周期，而是告诉编译器当不满足此约束条件时，就拒绝编译通过**
+
+#### 深入思考生命周期标注
+
+**函数的返回值如果是一个引用类型，那么它的生命周期只会来源于**：
+
+- 函数参数的生命周期
+- 函数体中某个新建引用的生命周期 （dangling pointer）
+
+生命周期语法用来将函数的多个引用参数和返回值的作用域关联到一起，一旦关联到一起后，Rust 就拥有充分的信息来确保我们的操作是内存安全的。
+
+#### 生命周期约束
+
+- `'a: 'b`，是生命周期约束语法，跟泛型约束非常相似，用于说明 `'a` 必须比 `'b` 活得久
+- 可以把 `'a` 和 `'b` 都在同一个地方声明（如上），或者分开声明但通过 `where 'a: 'b` 约束生命周期关系，如下
+
+### 3.1.2 深入生命周期
+
+### 3.1.3 &'static vs T: 'static
+
+**`&'static` 生命周期针对的仅仅是引用，而不是持有该引用的变量，对于变量来说，还是要遵循相应的作用域规则**，比如变量被释放，无法再被访问，但数据依然还会存活
+
+
+
+- 如果你需要添加 `&'static` 来让代码工作，那很可能是设计上出问题了
+- 如果你希望满足和取悦编译器，那就使用 `T: 'static`，很多时候它都能解决问题

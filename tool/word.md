@@ -181,6 +181,7 @@
 99. compel: 迫使
 100. convey: 传达
 101. consolidate: 核心内容
+102. conservative: 保守的
 
 # D
 
@@ -368,7 +369,7 @@
 10. hazards: 危害
 11. hypotheses：假设
 12. hyphens: 连字符号
-13. in conjunction
+13. in conjunction: 组合
 
 # I
 
@@ -457,6 +458,7 @@
 83. ideology: 思想
 84. indicator: 指标
 85. idiomatic: 习惯语
+86. inherently: 天生的
 
 # J
 
@@ -645,6 +647,7 @@
 
 1. quantitative 量化
 2. quotient：商数
+3. quota: 配额
 
 # R
 
@@ -755,6 +758,7 @@
 62. siblings: 兄弟姐妹
 63. spreadsheet: 电子表格
 64. symptoms: 症状
+65. stunt double: 特技替身
 
 # T
 

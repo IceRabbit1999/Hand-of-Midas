@@ -1,5 +1,3 @@
-# Word
-
 # A
 
 1. assume 假设
@@ -58,6 +56,9 @@
 54. adhere: 坚持
 55. approves：批准
 56. anatomy: 解剖学
+57. advocating: 倡导
+58. anecdote: 轶事
+59. anxiety: 焦虑
 
 # B
 
@@ -77,6 +78,8 @@
 14. bounces: 反弹
 15. blasphemous: 亵渎神明的
 16. benevolent: 仁慈
+17. bloated: 臃肿
+18. blazingly： 炽热的
 
 # C
 
@@ -181,7 +184,8 @@
 99. compel: 迫使
 100. convey: 传达
 101. consolidate: 核心内容
-102. conservative: 保守的
+102. conservative: 保守的、
+103. compensate： 补偿
 
 # D
 
@@ -249,6 +253,8 @@
 62. dire：可怕的
 63. deterministic: 确定性的
 64. debate: 辩论
+65. dull: 乏味的
+66. dabble: 玩水，辗转
 
 # E
 
@@ -323,6 +329,10 @@
 69. excerpt：摘抄
 70. elision：省略
 71. extent: 程度
+72. entrant: 参赛者
+73. empowerment: 赋权
+74. ethos: 精神气质
+75. extraordinarily: 非常
 
 # F
 
@@ -342,6 +352,8 @@
 14. facilities: 设施
 15. folks: 伙计
 16. flaws: 缺陷
+17. flair: 天赋
+18. foster:促进
 
 # G
 
@@ -354,6 +366,8 @@
 7. govern: 管辖
 8. grapheme: 字形
 9. goodies：好东西
+10. grasp: 抓牢
+11. gist: 要旨
 
 # H
 
@@ -370,6 +384,7 @@
 11. hypotheses：假设
 12. hyphens: 连字符号
 13. in conjunction: 组合
+14. hurdle: 栏
 
 # I
 
@@ -459,6 +474,9 @@
 84. indicator: 指标
 85. idiomatic: 习惯语
 86. inherently: 天生的
+87. intensive: 密集的
+88. intimidated: 被吓倒
+89. inclusiveness: 包容性
 
 # J
 
@@ -513,6 +531,8 @@
 24. macro: 宏
 25. mutate: 变异
 26. monomorphization: 单态化
+27. mature: 成熟
+28. migrating: 迁徙
 
 # N
 
@@ -556,7 +576,9 @@
 20. overlap: 重叠
 21. orphan: 孤儿
 22. overlaps：重叠
-23. penalty: 惩罚
+23. objective: 客观的，目的
+24. omitted: 省略
+25. penalty: 惩罚
 
 # P
 
@@ -642,6 +664,8 @@
 80. promotion: 晋升
 81. prioritize: 优先考虑
 82. pseudocode: 伪代码
+83. pace: 步伐
+84. panacea: 灵丹妙药
 
 # Q
 
@@ -759,6 +783,8 @@
 63. spreadsheet: 电子表格
 64. symptoms: 症状
 65. stunt double: 特技替身
+66. sanctioned: 受制裁的
+67. spiral: 螺旋
 
 # T
 
@@ -838,6 +864,7 @@
 16. vacuous：空虚的
 17. variant: 变体
 18. vulnerabilities: 漏洞
+19. viable: 可行的
 
 # W
 

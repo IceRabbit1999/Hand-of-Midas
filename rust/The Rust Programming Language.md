@@ -3993,9 +3993,46 @@ a recap of the reasons to choose `Box<T>`, `Rc<T>`, or `RefCell<T>`:
 
 the borrow checker in the compiler allows this interior mutability, and the borrowing rules are checked at runtime instead.
 
-### A Use Case fir Interior Mutability: Mock Objects
+### A Use Case for Interior Mutability: Mock Objects
 
-**SHIT, this part is so damn hard, skip first**
+### Keeping Track of Borrows at Runtime with RefCell\<T>
+
+Every time we call `borrow`, the `RefCell<T>` increases its count of how many immutable borrows are active. When a `Ref<T>` value goes out of scope, the count of immutable borrows goes down by one.
+
+### Having Multiple Owners of Mutable Data by Combining Rc\<T> and RefCell\<T>
+
+```rust
+#[derive(Debug)]
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>),
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let value = Rc::new(RefCell::new(5));
+
+    let a = Rc::new(Cons(Rc::clone(&value), Rc::new(Nil)));
+
+    let b = Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
+    let c = Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
+
+    *value.borrow_mut() += 10;
+
+    println!("a after = {:?}", a);
+    println!("b after = {:?}", b);
+    println!("c after = {:?}", c);
+}
+```
+
+
+
+
+
+
 
 ## 15.6 Reference Cycles Can Leak Memory
 

@@ -186,6 +186,7 @@
 101. consolidate: 核心内容
 102. conservative: 保守的、
 103. compensate： 补偿
+104. consensus: 共识
 
 # D
 
@@ -255,6 +256,7 @@
 64. debate: 辩论
 65. dull: 乏味的
 66. dabble: 玩水，辗转
+67. dogmatic: 教条的，独断的
 
 # E
 
@@ -333,6 +335,7 @@
 73. empowerment: 赋权
 74. ethos: 精神气质
 75. extraordinarily: 非常
+76. exclusive：独家
 
 # F
 
@@ -502,6 +505,7 @@
 15. luminance：亮度
 16. Lieutenants: 中尉
 17. liberties： 自由
+18. leveraging: 利用
 
 # M
 
@@ -533,6 +537,7 @@
 26. monomorphization: 单态化
 27. mature: 成熟
 28. migrating: 迁徙
+29. mitigate: 缓解
 
 # N
 
@@ -666,6 +671,7 @@
 82. pseudocode: 伪代码
 83. pace: 步伐
 84. panacea: 灵丹妙药
+85. piqued: 激怒
 
 # Q
 

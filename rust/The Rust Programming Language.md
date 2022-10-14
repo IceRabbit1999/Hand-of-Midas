@@ -4038,3 +4038,370 @@ fn main() {
 
 ### Creating a Reference Cycle
 
+```rust
+fn main() {
+    let a = Rc::new(Cons(5, RefCell::new(Rc::new(Nil))));
+
+    println!("a initial rc count = {}", Rc::strong_count(&a));
+    println!("a next item = {:?}", a.tail());
+
+    let b = Rc::new(Cons(10, RefCell::new(Rc::clone(&a))));
+
+    println!("a rc count after b creation = {}", Rc::strong_count(&a));
+    println!("b initial rc count = {}", Rc::strong_count(&b));
+    println!("b next item = {:?}", b.tail());
+
+    if let Some(link) = a.tail() {
+        *link.borrow_mut() = Rc::clone(&b);
+    }
+
+    println!("b rc count after changing a = {}", Rc::strong_count(&b));
+    println!("a rc count after changing a = {}", Rc::strong_count(&a));
+
+    // Uncomment the next line to see that we have a cycle;
+    // it will overflow the stack
+    // println!("a next item = {:?}", a.tail());
+}
+```
+
+### Preventing Reference Cycles: Turning an Rc\<T> into a Weak\<T>
+
+When you call `Rc::downgrade`, you get a smart pointer of type `Weak<T>`, calling `Rc::downgrade` increases the `weak_count` by 1, the `weak_count` doesn’t need to be 0 for the `Rc<T>` instance to be cleaned up
+
+```rust
+fn main() {
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+
+    let branch = Rc::new(Node {
+        value: 5,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![Rc::clone(&leaf)]),
+    });
+
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+}
+```
+
+### Visualizing Changes to strong_count and weak_count
+
+
+
+```rust
+fn main() {
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+
+    {
+        let branch = Rc::new(Node {
+            value: 5,
+            parent: RefCell::new(Weak::new()),
+            children: RefCell::new(vec![Rc::clone(&leaf)]),
+        });
+
+        *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+        println!(
+            "branch strong = {}, weak = {}",
+            Rc::strong_count(&branch),
+            Rc::weak_count(&branch),
+        );
+
+        println!(
+            "leaf strong = {}, weak = {}",
+            Rc::strong_count(&leaf),
+            Rc::weak_count(&leaf),
+        );
+    }
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+}
+```
+
+
+
+# 16 Fearless Concurrency
+
+
+
+By leveraging ownership and type checking, many concurrency errors are compile-time errors in Rust rather than runtime errors
+
+## 16.1 Using Threads to Run Code Simultaneously
+
+ 
+
+The Rust standard library uses a *1:1* model of thread implementation
+
+### Creating New Thread with spawn
+
+when the main thread of Rust program completes, all spawned are shut down, whether or not they have finished running
+
+```rust
+fn main() {
+    thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+}
+```
+
+### Waiting for All Threads to Finish Using join Handles
+
+```rust
+fn main() {
+    let handle = thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+
+    handle.join().unwrap();
+}
+```
+
+### Using move Closures with Threads
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+
+    let handle = thread::spawn(move || {
+        println!("Here's a vector: {:?}", v);
+    });
+
+    handle.join().unwrap();
+}
+```
+
+## 16.2 Using Message Passing to Transfer Data Between Threads
+
+*message passing*, where threads or actors communicate by sending each other messages containing data.
+
+```rust
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let val = String::from("hi");
+        tx.send(val).unwrap();
+    });
+
+    let received = rx.recv().unwrap();
+    println!("Got: {}", received);
+}
+```
+
+### Channels and Ownership Transference
+
+```rust
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let val = String::from("hi");
+        tx.send(val).unwrap();
+        //error[E0382]: borrow of moved value: `val`
+        println!("val is {}", val);
+    });
+
+    let received = rx.recv().unwrap();
+    println!("Got: {}", received);
+}
+```
+
+### Sending Multiple Values and Seeing the Receiver Waiting
+
+```rust
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("thread"),
+        ];
+
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    for received in rx {
+        println!("Got: {}", received);
+    }
+}
+```
+
+### Creating Multiple Producers by Cloning the Transmitter
+
+```rust
+let (tx, rx) = mpsc::channel();
+
+    let tx1 = tx.clone();
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("thread"),
+        ];
+
+        for val in vals {
+            tx1.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("more"),
+            String::from("messages"),
+            String::from("for"),
+            String::from("you"),
+        ];
+
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    for received in rx {
+        println!("Got: {}", received);
+    }
+```
+
+## 16.3 Shared-State Concurrency
+
+Shared memory concurrency is like multiple ownership: multiple threads can access the same memory location at the same time
+
+### Using Mutexes to Allow Access to Data from One Thread at a Time
+
+a mutex allows only one thread to access some data at any given time
+
+- You must attempt to acquire the lock before using the data.
+- When you’re done with the data that the mutex guards, you must unlock the data so other threads can acquire the lock.
+
+### The API of Mutex\<T>
+
+```rust
+fn main() {
+    let m = Mutex::new(5);
+
+    {
+        //lock() call will block the current thread so it can’t do any work until it’s our turn to have the lock.
+        let mut num = m.lock().unwrap();
+        *num = 6;
+        // lock release happens automatically after }
+    }
+
+    println!("m = {:?}", m);
+}
+```
+
+### Sharing a Mutex\<T> Between Multiple Threads
+
+```rust
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Result: {}", *counter.lock().unwrap());
+}
+```
+
+### Similarities Between `RefCell`/`Rc` and `Mutex`/`Arc`
+
+`Mutex<T>` provides interior mutability
+
+two `Rc<T>` values refer to each other, causing memory leaks. Similarly, `Mutex<T>` comes with the risk of creating *deadlock*
+
+## 16.4 Extensible Concurrency with the Sync and Send Traits
+
+### Allowing Transference of Ownership Between Threads with Send
+
+The `Send` marker trait indicates that ownership of values of the type implementing `Send` can be transferred between threads. 
+
+Any type composed entirely of `Send` types is automatically marked as `Send` as well. 
+
+### Allowing Access from Multiple Threads with Sync
+
+The `Sync` marker trait indicates that it is safe for the type implementing `Sync` to be referenced from multiple threads.
+
+any type `T` is `Sync` if `&T` (an immutable reference to `T`) is `Send`
+
+
+
+# 17 Object-Oriented Programming Features of Rust
+
+## 17.1 Characteristics of Object-Oriented Languages
+
+### Objects Contain Data and Behavior
+
+Rust support
+
+### Encapsulation that Hides Implementation Details
+
+Rust support
+
+### Inheritance as a Type System and as Code Sharing
+
+Rust not support
+
+You can do this in a limited way in Rust code using default trait method implementations
+
+trait objects enable polymorphism in Rust.
+
+## 17.2 Using Trait Objects That Allow for Values of Different Types
+

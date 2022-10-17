@@ -4405,3 +4405,592 @@ trait objects enable polymorphism in Rust.
 
 ## 17.2 Using Trait Objects That Allow for Values of Different Types
 
+```rust
+pub struct Screen {
+    pub components: Vec<Box<dyn Draw>>,
+}
+```
+
+When we use trait objects, Rust must use dynamic dispatch
+
+## 17.3 Implementing an Object-Oriented Design Pattern
+
+
+
+oop
+
+```rust
+
+pub struct Post {
+    state: Option<Box<dyn State>>,
+    content: String,
+}
+
+impl Post {
+    pub fn new() -> Post {
+        Post {
+            state: Some(Box::new(Draft {})),
+            content: String::new(),
+        }
+    }
+
+    pub fn add_text(&mut self, text: &str) {
+        self.content.push_str(text);
+    }
+
+
+
+    pub fn request_review(&mut self) {
+        if let Some(s)  = self.state.take() {
+            self.state = Some(s.request_review())
+        };
+    }
+
+    pub fn approve(&mut self) {
+        if let Some(s) = self.state.take() {
+            self.state = Some(s.approve())
+        }
+    }
+
+    pub fn content(&self) -> &str {
+        self.state.as_ref().unwrap().content(self)
+    }
+}
+
+trait State {
+    fn request_review(self: Box<Self>) -> Box<dyn State>;
+    fn approve(self: Box<Self>) -> Box<dyn State>;
+    fn content<'a>(&self, post: &'a Post) -> &'a str {
+        ""
+    }
+}
+
+struct Draft {}
+
+impl State for Draft {
+    fn request_review(self: Box<Self>) -> Box<dyn State> {
+        Box::new(PendingReview {})
+    }
+
+    fn approve(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+}
+
+struct PendingReview {
+
+}
+
+impl State for PendingReview {
+    fn request_review(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn approve(self: Box<Self>) -> Box<dyn State> {
+        Box::new(Published {})
+    }
+}
+
+struct Published {
+
+}
+
+impl State for Published {
+    fn request_review(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn approve(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn content<'a>(&self, post: &'a Post) -> &'a str {
+        &post.content
+    }
+}
+```
+
+rust
+
+```rust
+pub struct Post {
+    content: String,
+}
+
+pub struct DraftPost {
+    content: String,
+}
+
+impl Post {
+    pub fn new() -> DraftPost {
+        DraftPost {
+            content: String::new(),
+        }
+    }
+
+    pub fn content(&self) -> &str {
+        &self.content
+    }
+}
+
+impl DraftPost {
+    pub fn add_text(&mut self, text: &str) {
+        self.content.push_str(text);
+    }
+
+    pub fn request_review(self) -> PendingReviewPost {
+        PendingReviewPost {
+            content: self.content,
+        }
+    }
+}
+
+pub struct PendingReviewPost {
+    content: String,
+}
+
+impl PendingReviewPost {
+    pub fn approve(self) -> Post {
+        Post {
+            content: self.content,
+        }
+    }
+}
+```
+
+# 18 Patterns and Matching
+
+## 18.1 All the Patterns Can Be Used
+
+### match Arms
+
+```rust
+match VALUE {
+    PATTERN => EXPRESSION,
+    PATTERN => EXPRESSION,
+    PATTERN => EXPRESSION,
+}
+```
+
+### Conditional if let Expressions
+
+```rust
+fn main() {
+    let favorite_color: Option<&str> = None;
+    let is_tuesday = false;
+    let age: Result<u8, _> = "34".parse();
+
+    if let Some(color) = favorite_color {
+        println!("Using your favorite color, {color}, as the background");
+    } else if is_tuesday {
+        println!("Tuesday is green day!");
+    } else if let Ok(age) = age {
+        if age > 30 {
+            println!("Using purple as the background color");
+        } else {
+            println!("Using orange as the background color");
+        }
+    } else {
+        println!("Using blue as the background color");
+    }
+}
+```
+
+### while let Conditional Loops
+
+```rust
+fn main() {
+    let mut stack = Vec::new();
+
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+
+    while let Some(top) = stack.pop() {
+        println!("{}", top);
+    }
+}
+```
+
+### for Loops
+
+```rust
+fn main() {
+    let v = vec!['a', 'b', 'c'];
+
+    for (index, value) in v.iter().enumerate() {
+        println!("{} is at index {}", value, index);
+    }
+}
+```
+
+### let Statement
+
+`let (x, y, z) = (1, 2, 3);`
+
+### Function Parameters
+
+## 18.2 Refutability: Whether a Pattern Might Fail to Match
+
+
+
+## 18.3 Pattern Syntax
+
+### Matching Literals
+
+```rust
+fn main() {
+    let x = 1;
+
+    match x {
+        1 => println!("one"),
+        2 => println!("two"),
+        3 => println!("three"),
+        _ => println!("anything"),
+    }
+}
+```
+
+### Matching Named Variables
+
+```rust
+let x = Some(5);
+let y = 10;
+
+match x {
+    Some(50) => println!("Got 50"),
+    Some(y) => println!("Matched, y = {y}"),
+    _ => println!("Default case, x = {:?}", x),
+}
+```
+
+### Multiple Patterns
+
+```rust
+fn main() {
+    let x = 1;
+
+    match x {
+        1 | 2 => println!("one or two"),
+        3 => println!("three"),
+        _ => println!("anything"),
+    }
+}
+```
+
+### Matching Ranges of Values with ..=
+
+```rust
+fn main() {
+    let x = 5;
+
+    match x {
+        1..=5 => println!("one through five"),
+        _ => println!("something else"),
+    }
+}
+```
+
+### Destructing to Break Apart Values
+
+struct
+
+```rust
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let p = Point { x: 0, y: 7 };
+
+    let Point { x, y } = p;
+    assert_eq!(0, x);
+    assert_eq!(7, y);
+    
+    match p {
+        Point { x, y: 0 } => println!("On the x axis at {}", x),
+        Point { x: 0, y } => println!("On the y axis at {}", y),
+        Point { x, y } => println!("On neither axis: ({}, {})", x, y),
+    }
+}
+```
+
+enums
+
+```rust
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+
+fn main() {
+    let msg = Message::ChangeColor(0, 160, 255);
+
+    match msg {
+        Message::Quit => {
+            println!("The Quit variant has no data to destructure.")
+        }
+        Message::Move { x, y } => {
+            println!(
+                "Move in the x direction {} and in the y direction {}",
+                x, y
+            );
+        }
+        Message::Write(text) => println!("Text message: {}", text),
+        Message::ChangeColor(r, g, b) => println!(
+            "Change the color to red {}, green {}, and blue {}",
+            r, g, b
+        ),
+    }
+}
+```
+
+### Ignoring Values in a Pattern
+
+The syntax `_x` still binds the value to the variable, whereas `_` doesn’t bind at all
+
+```rust
+fn main() {
+    let numbers = (2, 4, 8, 16, 32);
+
+    match numbers {
+        (first, .., last) => {
+            println!("Some numbers: {first}, {last}");
+        }
+    }
+}
+```
+
+### Extra Conditionals with Match Guards
+
+1. A *match guard* is an additional `if` condition, specified after the pattern in a `match` arm, that must also match for that arm to be chosen
+2. the compiler doesn't try to check for exhaustiveness when match guard expressions are involved.
+
+```rust
+fn main() {
+    let x = Some(5);
+    let y = 10;
+
+    match x {
+        Some(50) => println!("Got 50"),
+        Some(n) if n == y => println!("Matched, n = {n}"),
+        _ => println!("Default case, x = {:?}", x),
+    }
+
+    println!("at the end: x = {:?}, y = {y}", x);
+    //------------------------------------------
+    let x = 4;
+    let y = false;
+
+    match x {
+        4 | 5 | 6 if y => println!("yes"),
+        _ => println!("no"),
+    }
+}
+
+
+```
+
+### @Bindings
+
+lets us create a variable that holds a value at the same time as we’re testing that value for a pattern match
+
+```rust
+fn main() {
+    enum Message {
+        Hello { id: i32 },
+    }
+
+    let msg = Message::Hello { id: 5 };
+
+    match msg {
+        Message::Hello {
+            id: id_variable @ 3..=7,
+        } => println!("Found an id in range: {}", id_variable),
+        Message::Hello { id: 10..=12 } => {
+            println!("Found an id in another range")
+        }
+        Message::Hello { id } => println!("Found some other id: {}", id),
+    }
+}
+```
+
+# 19 Advanced Features
+
+## 19.1 Unsafe Rust
+
+## Unsafe Superpowers
+
+- Dereference a raw pointer
+- Call an unsafe function or method
+- Access or modify a mutable static variable
+- Implement an unsafe trait
+- Access fields of `union`s
+
+The `unsafe` keyword only gives you access to these five features that are then not checked by the compiler for memory safety.
+
+### Dereferencing a Raw Pointer
+
+1. raw pointers can be immutable or mutable and are written as `*const T` and `*mut T`, respectively
+2.  *immutable* means that the pointer can’t be directly assigned to after being dereferenced
+
+Different from references and smart pointers, raw pointers:
+
+- Are allowed to ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location
+- Aren’t guaranteed to point to valid memory
+- Are allowed to be null
+- Don’t implement any automatic cleanup
+
+…… to be continued
+
+## 19.2 Advanced Traits
+
+### Specifying Placeholder Types in Trait Definitions with Associated Types
+
+```rust
+pub trait Iterator {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+}
+```
+
+与泛型的区别: when a trait has a generic parameter, it can be implemented for a type multiple times, changing the concrete types of the generic type parameters each time
+
+### Default Generic Type Parameters and Operator Overloading
+
+```rust
+//Rhs: right hand side, defines the type of the rhs parameter in the add method.
+trait Add<Rhs=Self> {
+    type Output;
+
+    fn add(self, rhs: Rhs) -> Self::Output;
+}
+```
+
+```rust
+struct Millimeters(u32);
+struct Meters(u32);
+
+impl Add<Meters> for Millimeters {
+    type Output = Millimeters;
+
+    fn add(self, other: Meters) -> Millimeters {
+        Millimeters(self.0 + (other.0 * 1000))
+    }
+}
+```
+
+You’ll use default type parameters in two main ways:
+
+- To extend a type without breaking existing code
+- To allow customization in specific cases most users won’t need
+
+### Fully Qualified Syntax for Disambiguation: Calling Methods with the Same Name
+
+```rust
+trait Pilot {
+    fn fly(&self);
+}
+
+trait Wizard {
+    fn fly(&self);
+}
+
+struct Human;
+
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("This is your captain speaking.");
+    }
+}
+
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("Up!");
+    }
+}
+
+impl Human {
+    fn fly(&self) {
+        println!("*waving arms furiously*");
+    }
+}
+
+fn main() {
+    let person = Human;
+    Pilot::fly(&person);
+    Wizard::fly(&person);
+    person.fly();
+}
+```
+
+```rust
+trait Animal {
+    fn baby_name() -> String;
+}
+
+struct Dog;
+
+impl Dog {
+    fn baby_name() -> String {
+        String::from("Spot")
+    }
+}
+
+impl Animal for Dog {
+    fn baby_name() -> String {
+        String::from("puppy")
+    }
+}
+
+fn main() {
+    println!("A baby dog is called a {}", <Dog as Animal>::baby_name());
+}
+```
+
+### Using Supertraits to Require One Trait's Functionally Within Another Trait
+
+The trait your trait definition is relying on is called a *supertrait* of your trait.
+
+```rust
+use std::fmt;
+
+trait OutlinePrint: fmt::Display {
+    fn outline_print(&self) {
+        let output = self.to_string();
+        let len = output.len();
+        println!("{}", "*".repeat(len + 4));
+        println!("*{}*", " ".repeat(len + 2));
+        println!("* {} *", output);
+        println!("*{}*", " ".repeat(len + 2));
+        println!("{}", "*".repeat(len + 4));
+    }
+}
+
+fn main() {}
+
+```
+
+### Using the Newtype Pattern to Implement External Traits on External Types
+
+```rust
+use std::fmt;
+
+struct Wrapper(Vec<String>);
+
+impl fmt::Display for Wrapper {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}]", self.0.join(", "))
+    }
+}
+
+fn main() {
+    let w = Wrapper(vec![String::from("hello"), String::from("world")]);
+    println!("w = {}", w);
+}
+```
+

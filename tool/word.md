@@ -59,6 +59,7 @@
 57. advocating: 倡导
 58. anecdote: 轶事
 59. anxiety: 焦虑
+60. asterisk: 星号
 
 # B
 
@@ -187,6 +188,7 @@
 102. conservative: 保守的、
 103. compensate： 补偿
 104. consensus: 共识
+105. crux: 症状
 
 # D
 
@@ -336,6 +338,7 @@
 74. ethos: 精神气质
 75. extraordinarily: 非常
 76. exclusive：独家
+77. ego: 自我
 
 # F
 
@@ -357,6 +360,7 @@
 16. flaws: 缺陷
 17. flair: 天赋
 18. foster:促进
+19. fallible: 容易犯错的
 
 # G
 
@@ -506,6 +510,7 @@
 16. Lieutenants: 中尉
 17. liberties： 自由
 18. leveraging: 利用
+19. lingering: 挥之不去
 
 # M
 
@@ -672,6 +677,8 @@
 83. pace: 步伐
 84. panacea: 灵丹妙药
 85. piqued: 激怒
+86. panoply: 全套
+87. pilot: 飞行员
 
 # Q
 
@@ -721,6 +728,7 @@
 38. rectify: 纠正
 39. resistance： 反抗
 40. rigidly: 死板的
+41. refutable: 可反驳的
 
 # S
 
@@ -849,6 +857,7 @@
 16. unidirectional：单向
 17. upfront: 前期
 18. unwind： 放松
+19. upholds: 坚持
 
 # V
 
@@ -878,3 +887,4 @@
 2. whet：磨
 3. wreak：恶作剧
 4. whopping：惊人的
+5. wizard: 巫师，向导

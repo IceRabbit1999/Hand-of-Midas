@@ -392,6 +392,7 @@
 12. hyphens: 连字符号
 13. in conjunction: 组合
 14. hurdle: 栏
+15. halt: 停
 
 # I
 
@@ -589,6 +590,7 @@
 23. objective: 客观的，目的
 24. omitted: 省略
 25. penalty: 惩罚
+26. optimal: 最佳
 
 # P
 
@@ -729,6 +731,7 @@
 39. resistance： 反抗
 40. rigidly: 死板的
 41. refutable: 可反驳的
+42. reproduced: 转载
 
 # S
 
@@ -799,6 +802,7 @@
 65. stunt double: 特技替身
 66. sanctioned: 受制裁的
 67. spiral: 螺旋
+68. synonym: 代名词
 
 # T
 

@@ -1,12 +1,3 @@
-# The Rust Programming Language
-
-Created: August 9, 2022 10:31 PM
-Last Edited Time: September 21, 2022 8:42 AM
-Status: In Progress 🙌
-Type: rust
-
-[The Rust Programming Language](https://doc.rust-lang.org/book/print.html)
-
 # Trouble Shooting
 
 1. when using idea to create a cargo project, meet ”Updating [creates.io](http://creates.io) index” and “no cargo project find”
@@ -14,7 +5,7 @@ Type: rust
     
     [How do I debug `cargo build` hanging at "Updating crates.io index"?](https://stackoverflow.com/questions/53361052/how-do-i-debug-cargo-build-hanging-at-updating-crates-io-index)
 
-# Foreward
+# Forward
 
 no matter what kind of code you are writing now, Rust empowers you to reach farther, to program with confidence in a wider variety of domains than you did before
 
@@ -4993,4 +4984,180 @@ fn main() {
     println!("w = {}", w);
 }
 ```
+
+## 19.3 Advanced Types
+
+### Creating Type Synonyms with Type Aliases
+
+```rust
+fn main() {
+    type Kilometers = i32;
+
+    let x: i32 = 5;
+    let y: Kilometers = 5;
+
+    println!("x + y = {}", x + y);
+}
+```
+
+The main use case for type synonyms is to reduce repetition
+
+### The Never Type that Never Returns
+
+```rust
+fn bar() -> ! {
+    // --snip--
+}
+
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+use crate::Option::*;
+
+impl<T> Option<T> {
+    pub fn unwrap(self) -> T {
+        match self {
+            Some(val) => val,
+            None => panic!("called `Option::unwrap()` on a `None` value"),
+        }
+    }
+}
+
+```
+
+### Dynamically Sized Types and the Sized Trait
+
+1. The golden rule of dynamically sized types is that we must always put values of dynamically sized types behind a pointer of some kind.
+2. Every trait is a dynamically sized type we can refer to by using the name of the trait
+3. To work with DSTs, Rust provides the `Sized` trait to determine whether or not a type’s size is known at compile time
+4. Rust implicitly adds a bound on `Sized` to every generic function
+
+## 19.4 Advanced Functions and Closures
+
+### Function Pointers
+
+Functions coerce to the type `fn`, The `fn` type is called a *function pointer*
+
+```rust
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 {
+    f(arg) + f(arg)
+}
+
+fn main() {
+    let answer = do_twice(add_one, 5);
+
+    println!("The answer is: {}", answer);
+}
+```
+
+Function pointers implement all three of the closure traits, meaning you can always pass a function pointer as an argument for a function that expects a closure
+
+```rust
+fn main() {
+    enum Status {
+        Value(u32),
+        Stop,
+    }
+
+    let list_of_statuses: Vec<Status> = (0u32..20).map(Status::Value).collect();
+}
+```
+
+```rust
+fn main() {
+    let list_of_numbers = vec![1, 2, 3];
+    let list_of_strings: Vec<String> =
+        list_of_numbers.iter().map(ToString::to_string).collect();
+}
+```
+
+```rust
+fn main() {
+    let list_of_numbers = vec![1, 2, 3];
+    let list_of_strings: Vec<String> =
+        list_of_numbers.iter().map(|i| i.to_string()).collect();
+}
+```
+
+### Returning Closures
+
+you can’t return closures directly
+
+you’re not allowed to use the function pointer `fn` as a return type
+
+## 19.5 Macros
+
+- Custom `#[derive]` macros that specify code added with the `derive` attribute used on structs and enums
+- Attribute-like macros that define custom attributes usable on any item
+- Function-like macros that look like function calls but operate on the tokens specified as their argument
+
+### The Difference Between Macros and Functions
+
+macros are a way of writing code that writes other code, which is known as *metaprogramming*
+
+### Declarative Macros with macro_rules! for General Metaprogramming
+
+```rust
+#[macro_export]
+macro_rules! vec {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+}
+```
+
+to be continued…
+
+# 20 Final Project: Building a Multithreaded Web Server
+
+## 20.1 Building a Single-Threaded Web Server
+
+```rust
+use std::fs;
+use std::io::{BufRead, BufReader, Write};
+use std::net::{TcpListener, TcpStream};
+
+fn main() {
+    let listener = TcpListener::bind("172.24.118.241:7878").unwrap();
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+        println!("Connection established!");
+        handle_connection(stream);
+    }
+}
+
+fn handle_connection(mut stream: TcpStream) {
+    let buf_reader = BufReader::new(&mut stream);
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
+
+    let (status_line, filename) = if request_line == "GET / HTTP/1.1" {
+        ("HTTP/1.1 200 OK", "hello.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND", "404.html")
+    };
+
+    let contents = fs::read_to_string(filename).unwrap();
+    let length = contents.len();
+
+    let response =
+        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+
+    stream.write_all(response.as_bytes()).unwrap();
+}
+```
+
+## 20.2 Turning Our Single-Threaded Server into a Multithreaded Server
 

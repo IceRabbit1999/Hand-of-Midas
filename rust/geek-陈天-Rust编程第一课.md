@@ -83,3 +83,29 @@
 
 ## 类型系统：trait
 
++ Self 代表当前的类型，比如 File 类型实现了 Write，那么实现过程中使用到的 Self 就指代 File。
++ self 在用作方法的第一个参数时，实际上是 self: Self 的简写，所以 &self 是 self: &Self, 而 &mut self 是 self: &mut Self。
+
+1. 如果 trait 所有的方法，返回值是 Self 或者携带泛型参数，那么这个 trait 就不能产生 trait object
+   1. 不允许返回 Self，是因为 trait object 在产生时，原来的类型会被抹去，所以 Self 究竟是谁不知道。
+   2. 不允许携带泛型参数，是因为 Rust 里带泛型的类型在编译时会做单态化，而 trait object 是运行时的产物，两者不能兼容。
+
+## 类型系统：常用trait
+
+1. 内存相关：Clone / Copy / Drop
+   1. Copy trait 和 Drop trait 是互斥的，两者不能共存。Copy 是按位做浅拷贝，那么它会默认拷贝的数据没有需要释放的资源；而 Drop 恰恰是为了释放额外的资源而生的。
+2. 标记 trait：Sized / Send / Sync / Unpin
+   1. 如果一个类型 T 实现了 Send trait，意味着 T 可以安全地从一个线程移动到另一个线程，也就是说所有权可以在线程间移动。
+   2. 如果一个类型 T 实现了 Sync trait，则意味着 &T 可以安全地在多个线程中共享。一个类型 T 满足 Sync trait，当且仅当 &T 满足 Send trait。
+   3. 如果一个类型 T: Send，那么 T 在某个线程中的独占访问是线程安全的；如果一个类型 T: Sync，那么 T 在线程间的只读共享是安全的。
+3. 类型转换相关：From / Into/AsRef / AsMut
+   1. 值类型到值类型的转换：From / Into / TryFrom / TryInto
+   2. 引用类型到引用类型的转换：AsRef / AsMut
+4. 操作符相关：Deref / DerefMut
+5. 其它：Debug / Display / Default
+
+## 数据结构：智能指针
+
+1. 智能指针 String 和胖指针 &str 的区别
+   1. String 对堆上的值有所有权，而 &str 是没有所有权的，这是 Rust 中智能指针和普通胖指针的区别。
+2. 在 Rust 中，凡是需要做资源回收的数据结构，且实现了 Deref/DerefMut/Drop，都是智能指针

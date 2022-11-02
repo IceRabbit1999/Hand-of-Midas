@@ -15,7 +15,7 @@ no matter what kind of code you are writing now, Rust empowers you to reach fart
 
 ## 1.1 Installation
 
-on linux: `curl --proto '=https' --tlsv1.2 [https://sh.rustup.rs](https://sh.rustup.rs/) -sSf | sh`
+on linux: `curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh`
 
 update: `rustup update`
 

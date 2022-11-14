@@ -189,6 +189,9 @@
 103. compensate： 补偿
 104. consensus: 共识
 105. crux: 症状
+106. coincidence: 巧合
+107. consciously: 故意的
+108. convinced: 深信不疑
 
 # D
 
@@ -259,6 +262,9 @@
 65. dull: 乏味的
 66. dabble: 玩水，辗转
 67. dogmatic: 教条的，独断的
+68. dedication: 奉献精神
+69. digested: 消化
+70. delves: 钻研
 
 # E
 
@@ -361,6 +367,7 @@
 17. flair: 天赋
 18. foster:促进
 19. fallible: 容易犯错的
+20. frustrating: 令人沮丧
 
 # G
 
@@ -393,6 +400,7 @@
 13. in conjunction: 组合
 14. hurdle: 栏
 15. halt: 停
+16. holistic: 整体的
 
 # I
 
@@ -490,6 +498,7 @@
 
 1. jeopardizing:危及
 2. jargon：行话
+3. judicious: 明智的
 
 # L
 
@@ -512,6 +521,7 @@
 17. liberties： 自由
 18. leveraging: 利用
 19. lingering: 挥之不去
+20. long-winded: 冗长
 
 # M
 
@@ -544,6 +554,7 @@
 27. mature: 成熟
 28. migrating: 迁徙
 29. mitigate: 缓解
+30. manifesting: 显化
 
 # N
 
@@ -562,6 +573,7 @@
 13. nomadic：游牧的
 14. nontrivial：不平凡
 15. nutshell: 简而言之
+16. nuance: 细微差别
 
 # O
 
@@ -681,6 +693,7 @@
 85. piqued: 激怒
 86. panoply: 全套
 87. pilot: 飞行员
+88. polished：抛光
 
 # Q
 
@@ -803,6 +816,7 @@
 66. sanctioned: 受制裁的
 67. spiral: 螺旋
 68. synonym: 代名词
+69. seize: 抢占
 
 # T
 

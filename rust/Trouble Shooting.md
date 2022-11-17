@@ -7,3 +7,24 @@
 
 
 https://github.com/rust-lang/rust/issues/57966#issuecomment-1219732285
+
+
+
+# Compiling Error
+
+
+
+1. error[E0506]: cannot assign to `x` because it is borrowed
+
+   1. Description
+
+      ```rust
+       let mut x;
+          x = 43;
+          let y = &mut x;
+          x = 42; //  assignment to borrowed `x` occurs here
+          println!("{}", y)
+      ```
+
+   2. Solution: https://stackoverflow.com/questions/70966786/cannot-assign-to-x-because-it-is-borrowed
+      1. the contents of a memory location can only be mutated if there is only one pointer through which that location can be accessed

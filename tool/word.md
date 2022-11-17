@@ -192,6 +192,7 @@
 106. coincidence: 巧合
 107. consciously: 故意的
 108. convinced: 深信不疑
+109. caveat: 警告
 
 # D
 
@@ -401,6 +402,7 @@
 14. hurdle: 栏
 15. halt: 停
 16. holistic: 整体的
+17. heuristic: 启发式
 
 # I
 
@@ -745,6 +747,8 @@
 40. rigidly: 死板的
 41. refutable: 可反驳的
 42. reproduced: 转载
+43. reclaimed: 回收
+44. reserve: 预定
 
 # S
 
@@ -876,6 +880,7 @@
 17. upfront: 前期
 18. unwind： 放松
 19. upholds: 坚持
+20. urge: 敦促
 
 # V
 

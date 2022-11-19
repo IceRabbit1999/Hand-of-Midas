@@ -266,6 +266,7 @@
 68. dedication: 奉献精神
 69. digested: 消化
 70. delves: 钻研
+71. discriminant: 判别式
 
 # E
 
@@ -403,6 +404,7 @@
 15. halt: 停
 16. holistic: 整体的
 17. heuristic: 启发式
+18. hesitate: 犹豫
 
 # I
 
@@ -749,6 +751,8 @@
 42. reproduced: 转载
 43. reclaimed: 回收
 44. reserve: 预定
+45. rigorous: 严格的
+46. reiterate: 重申
 
 # S
 
@@ -821,6 +825,7 @@
 67. spiral: 螺旋
 68. synonym: 代名词
 69. seize: 抢占
+70. stringent: 严格
 
 # T
 

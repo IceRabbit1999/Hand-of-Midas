@@ -51,3 +51,33 @@ fn main() {
 
 ### Interior Mutability
 
+1. let you get a mutable reference through a shared reference
+   1. Mutex, RefCell
+2. let you replace a value given only a shared reference
+
+### Lifetimes
+
+A *lifetime* is really a name for a region of code that some reference must be valid for
+
+#### Lifetimes and the Borrow Checker
+
+1. At the heart or Rust lifetimes is the *borrow checker*
+
+2. ```rust
+   fn main() {
+       let mut x = Box::new(2);
+       let r = &x;
+       if 4 > 2 {
+           *x = 4; // assignment to borrowed `*x` occurs here
+       }else {
+           println!("{}", r)
+       }
+       println!("{}", r);
+   }
+   ```
+
+# Types
+
+## Types in Memory
+
+One of the Types most fundamental roles is to tell you how to interpret bits of memory
